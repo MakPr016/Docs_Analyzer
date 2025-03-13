@@ -6,6 +6,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -35,7 +36,9 @@ def extract_text_from_pdf(pdf_path):
     text = ""
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
-            text += page.extract_text() + "\n"
+            extracted_text = page.extract_text()
+            if extracted_text:
+                text += extracted_text + "\n"
     return text.strip()
 
 # Function to extract text from DOCX
@@ -46,20 +49,26 @@ def extract_text_from_docx(docx_path):
 # Function to process text with Gemini AI
 def process_text_with_gemini(text):
     prompt = f"""
-    Analyze the following document and extract key points based on its type.
-    If it's a medical record, list diagnoses, medications, and recommendations.
-    If it's a legal document, highlight possible issues or flaws.
+    Analyze the following document and extract key information. 
+    Format the output as a well-structured HTML page using:
+    - Headings (`<h2>`)
+    - Bold labels (`<b>`)
+    - Bullet points (`<ul><li>`)
 
     Document Text:
     {text}
 
-    Provide a structured response.
+    Ensure the output is clean HTML without unnecessary code formatting, markdown syntax, or additional styling.
     """
     
     response = model.generate_content(prompt)
-    return response.text if response else "No key points found."
 
-@app.post("/upload")
+    # Clean any unwanted triple quotes or markdown formatting
+    html_content = response.text.replace("```html", "").replace("```", "").strip()
+
+    return html_content
+
+@app.post("/upload", response_class=HTMLResponse)
 async def upload_file(file: UploadFile = File(...)):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as buffer:
@@ -71,13 +80,11 @@ async def upload_file(file: UploadFile = File(...)):
     elif file.filename.endswith(".docx"):
         text = extract_text_from_docx(file_path)
     else:
-        return {"message": "Unsupported file format", "filename": file.filename}
+        return HTMLResponse(content="<h3>Unsupported file format</h3>", status_code=400)
 
     key_points = process_text_with_gemini(text)
 
-    return {
-        "message": "File uploaded successfully",
-        "filename": file.filename,
-        "extracted_text": text,
-        "key_points": key_points
-    }
+    # Remove any extra <html> or <body> tags to avoid nesting issues
+    clean_html = key_points.replace("<!DOCTYPE html>", "").replace("<html>", "").replace("</html>", "").strip()
+
+    return HTMLResponse(content=clean_html)
