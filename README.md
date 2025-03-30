@@ -91,19 +91,7 @@ By default, the server will run on `http://127.0.0.1:8000`.
 
 ---
 
-## Step 6: Testing the API
-
-Once the server is running, open your browser or use Postman to test the API at:
-
-```
-http://127.0.0.1:8000/docs
-```
-
-This will open the Swagger UI, where you can upload a document and see the extracted key points.
-
----
-
-## Step 7: Deactivating the Virtual Environment
+## Step 6: Deactivating the Virtual Environment
 
 After you're done, deactivate the virtual environment:
 
@@ -113,15 +101,47 @@ deactivate
 
 ---
 
-## Troubleshooting
+# Frontend Setup Guide
 
-- If you face issues with missing dependencies, try reinstalling them:
-  ```sh
-  pip install --upgrade pip
-  pip install -r requirements.txt
-  ```
-- Ensure your `.env` file contains the correct API key.
-- If `uvicorn` is not found, install it using:
-  ```sh
-  pip install uvicorn
-  
+This guide will help you set up and run the frontend for the **Document Analyzer** project using React and Vite.
+
+---
+
+## Prerequisites
+
+Make sure you have the following installed:
+
+- **Node.js** (Latest LTS recommended)
+- **npm** (Comes with Node.js) or **yarn** (optional)
+
+---
+
+## Step 1: Navigate to the Frontend Directory
+
+If you haven't already, navigate to the frontend directory:
+
+```sh
+cd frontend
+```
+
+---
+
+## Step 2: Install Dependencies
+
+Run the following command to install the required packages:
+
+```sh
+npm install
+```
+
+---
+
+## Step 3: Start the Development Server
+
+Run the following command to start the frontend:
+
+```sh
+npm run dev
+```
+
+By default, the frontend will be available at `http://localhost:5173`.
